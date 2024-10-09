@@ -38,7 +38,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             mobileNumber: json['Mobile_Number'] ?? '',
           );
         }).toList();
-        students.sort((a, b) => a.rollNumber.compareTo(b.rollNumber));
+        students.sort((a, b) => a.name.compareTo(b.name));
         for (var student in students) {
           attendanceStatus[student.rollNumber] = "Absent";
         }
