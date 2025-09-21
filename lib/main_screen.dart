@@ -9,48 +9,56 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Main Menu',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
-        backgroundColor: Colors.deepOrange,
+        title: Text(
+          'IEC-CET',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.deepPurple.shade700,
+        elevation: 0,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: Container(
+        color: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: GridView.count(
             crossAxisCount: 2,
-            childAspectRatio: 1.0,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+            childAspectRatio: 0.9,
+            mainAxisSpacing: 30,
+            crossAxisSpacing: 30,
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             children: [
               _buildMenuItem(
                 context,
-                icon: Icons.person_add,
+                icon: Icons.person_add_alt_1,
                 title: 'Add Student',
-                color: Colors.blueAccent,
+                color: Colors.lightGreen.shade400,
                 screen: AddStudentScreen(),
               ),
               _buildMenuItem(
                 context,
-                icon: Icons.check_circle,
+                icon: Icons.assignment_turned_in,
                 title: 'Attendance',
-                color: Colors.greenAccent,
+                color: Colors.cyan.shade400,
                 screen: AttendanceScreen(),
               ),
               _buildMenuItem(
                 context,
-                icon: Icons.file_download,
+                icon: Icons.insert_drive_file,
                 title: 'Generate Excel',
-                color: Colors.orange,
+                color: Colors.amber.shade400,
                 screen: GenerateExcelScreen(),
               ),
               _buildMenuItem(
                 context,
-                icon: Icons.history,
+                icon: Icons.history_edu,
                 title: 'History',
-                color: Colors.purple,
+                color: Colors.pinkAccent.shade400,
                 screen: HistoryScreen(),
               ),
             ],
@@ -62,9 +70,9 @@ class MainScreen extends StatelessWidget {
 
   Widget _buildMenuItem(BuildContext context,
       {required IconData icon,
-      required String title,
-      required Color color,
-      required Widget screen}) {
+        required String title,
+        required Color color,
+        required Widget screen}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -72,44 +80,41 @@ class MainScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => screen),
         );
       },
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 3,
-              blurRadius: 5,
-              offset: Offset(0, 3),
-            ),
-          ],
+      child: Card(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(icon, size: 40, color: color),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Serif',
-                        color: Colors.deepOrange),
-                  ),
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
                 ),
-              ],
-            ),
+                child: Icon(icon, size: 48, color: Colors.white),
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       ),

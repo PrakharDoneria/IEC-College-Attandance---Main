@@ -14,10 +14,13 @@ class _GenerateExcelScreenState extends State<GenerateExcelScreen> {
   String classNumber = '';
   String excelLink = '';
   bool isLoading = false;
+  final TextEditingController _classController = TextEditingController();
 
   Future<void> generateExcel() async {
-    if (classNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a class number')));
+    if (_classController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a class number')),
+      );
       return;
     }
 
@@ -25,8 +28,8 @@ class _GenerateExcelScreenState extends State<GenerateExcelScreen> {
       isLoading = true;
     });
 
-    final String baseUrl = 'https://iec-group-of-institutions.onrender.com';
-    final response = await http.get(Uri.parse('$baseUrl/dayExcel=$classNumber'));
+    final String baseUrl = 'https://iec-attendance-nodejs.onrender.com';
+    final response = await http.get(Uri.parse('$baseUrl/faculty/dayExcel/drive/${_classController.text}'));
 
     setState(() {
       isLoading = false;
@@ -38,10 +41,13 @@ class _GenerateExcelScreenState extends State<GenerateExcelScreen> {
         excelLink = jsonResponse['link'] ?? '';
       });
       saveLinkToHistory(excelLink);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excel generated!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Excel generated!')),
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate Excel')));
-      print('Error occurred: ${response.statusCode} ${response.body}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate Excel')),
+      );
     }
   }
 
@@ -53,10 +59,13 @@ class _GenerateExcelScreenState extends State<GenerateExcelScreen> {
   }
 
   Future<void> shareLink() async {
-    if (await canLaunch(excelLink)) {
-      await launch(excelLink);
+    final Uri url = Uri.parse(excelLink);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not launch the link')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch the link')),
+      );
     }
   }
 
@@ -65,89 +74,145 @@ class _GenerateExcelScreenState extends State<GenerateExcelScreen> {
   }
 
   @override
+  void dispose() {
+    _classController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Generate Excel', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepOrange,
+        title: Text(
+          'Generate Excel',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.history),
+            icon: Icon(Icons.history, color: Colors.white),
             onPressed: navigateToHistory,
+            tooltip: 'View History',
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Class Number',
-                labelStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.deepOrange),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.deepPurple.shade700, Colors.purple.shade900],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Generate Excel Report',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.orange),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
+                textAlign: TextAlign.center,
               ),
-              onChanged: (value) {
-                setState(() {
-                  classNumber = value;
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: generateExcel,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text('Generate Excel', style: TextStyle(fontSize: 18, color: Colors.white)),
-            ),
-            SizedBox(height: 20),
-            if (isLoading) 
-              Center(child: CircularProgressIndicator())
-            else if (excelLink.isNotEmpty) ...[
-              Text('Generated Excel Link:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: SelectableText(
-                    excelLink,
-                    style: TextStyle(fontSize: 16),
+              SizedBox(height: 32),
+              TextField(
+                controller: _classController,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Class Number',
+                  labelStyle: TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.1),
+                  prefixIcon: Icon(Icons.school, color: Colors.white70),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
                   ),
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    classNumber = value;
+                  });
+                },
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 30),
               ElevatedButton(
-                onPressed: shareLink,
+                onPressed: generateExcel,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                  backgroundColor: Colors.lightGreenAccent.shade400,
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 8,
+                ),
+                child: isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                  'Generate Excel',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                child: Text('Share Link', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
+              SizedBox(height: 30),
+              if (excelLink.isNotEmpty) ...[
+                Text(
+                  'Generated Link:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Card(
+                  elevation: 4,
+                  color: Colors.white.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: SelectableText(
+                      excelLink,
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: shareLink,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.cyanAccent.shade400,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 8,
+                  ),
+                  child: Text(
+                    'Open Link',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

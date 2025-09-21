@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'student_model.dart';
 
 class ApiService {
-  final String baseUrl = 'https://iec-group-of-institutions.onrender.com';
+  final String baseUrl = 'https://iec-attendance-nodejs.onrender.com';
 
   Future<void> addStudents(List<Student> students) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/add_students'),
+      Uri.parse('$baseUrl/students/add_students'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(students.map((student) => {
         'name': student.name,
@@ -35,7 +35,7 @@ class ApiService {
 
   Future<void> markAttendance(List<Map<String, dynamic>> attendance) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/mark_attendance'),
+      Uri.parse('$baseUrl/faculty/mark_attendance'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(attendance),
     );
@@ -46,7 +46,7 @@ class ApiService {
   }
 
   Future<String> generateAttendanceExcel(String classNumber) async {
-    final response = await http.get(Uri.parse('$baseUrl/generate_excel?classNumber=$classNumber'));
+    final response = await http.get(Uri.parse('$baseUrl/faculty/dayExcel/drive/$classNumber'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);

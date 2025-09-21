@@ -14,20 +14,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String classNumber = '';
   String subjectCode = '';
   bool isLoading = false;
-  final String baseUrl = 'https://iec-group-of-institutions.onrender.com';
+  final String baseUrl = 'https://iec-attendance-nodejs.onrender.com';
+  final TextEditingController _classController = TextEditingController();
+  final TextEditingController _subjectController = TextEditingController();
 
   Future<void> fetchStudents() async {
-    if (classNumber.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Please enter a class number')));
+    if (_classController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a class number')),
+      );
       return;
     }
     setState(() {
       isLoading = true;
     });
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/students/$classNumber'));
+      final response = await http.get(Uri.parse('$baseUrl/students/${_classController.text}'));
       if (response.statusCode == 200) {
         final List<dynamic> studentJson = jsonDecode(response.body);
         students = studentJson.map((json) {
@@ -47,8 +49,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         throw Exception('Failed to load students');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to load students')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load students')),
+      );
     } finally {
       setState(() {
         isLoading = false;
@@ -57,9 +60,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> submitAttendance() async {
-    if (subjectCode.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Please enter subject code')));
+    if (_subjectController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter subject code')),
+      );
       return;
     }
     List<Map<String, dynamic>> attendanceData = [];
@@ -68,25 +72,27 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         'Roll_Number': student.rollNumber,
         'Name': student.name,
         'Status': attendanceStatus[student.rollNumber] ?? "Absent",
-        'Subject_Code': subjectCode,
-        'Class_Number': classNumber,
+        'Subject_Code': _subjectController.text,
+        'Class_Number': _classController.text,
       });
     }
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/mark_attendance'),
+        Uri.parse('$baseUrl/faculty/mark_attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(attendanceData),
       );
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Attendance submitted!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Attendance submitted!')),
+        );
       } else {
         throw Exception('Failed to submit attendance');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to submit attendance')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit attendance')),
+      );
     }
   }
 
@@ -95,15 +101,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Enter Subject Code',
-              style: TextStyle(color: Colors.deepOrange)),
+          title: Text('Enter Subject Code', style: TextStyle(color: Colors.deepPurple)),
           content: TextField(
-            onChanged: (value) {
-              setState(() {
-                subjectCode = value;
-              });
-            },
-            decoration: InputDecoration(hintText: 'Subject Code'),
+            controller: _subjectController,
+            decoration: InputDecoration(
+              hintText: 'Subject Code',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+              ),
+            ),
           ),
           actions: [
             TextButton(
@@ -111,7 +119,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 Navigator.of(context).pop();
                 submitAttendance();
               },
-              child: Text('Submit'),
+              child: Text('Submit', style: TextStyle(color: Colors.deepPurple)),
             ),
           ],
         );
@@ -123,142 +131,155 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepOrange,
-        elevation: 2,
+        title: Text(
+          'Attendance',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Enter Class Number',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.deepPurple.shade700, Colors.purple.shade900],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Enter Class Number',
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepOrange)),
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Class Number',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.yellow[100],
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
               ),
-              onChanged: (value) {
-                setState(() {
+              SizedBox(height: 16),
+              TextField(
+                controller: _classController,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Class Number',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.school, color: Colors.white70),
+                ),
+                onChanged: (value) {
                   classNumber = value;
-                });
-              },
-            ),
-            SizedBox(height: 20),
-            _buildIndianStyledButton(
-              onPressed: fetchStudents,
-              text: 'Load Students',
-            ),
-            SizedBox(height: 20),
-            if (isLoading) Center(child: CircularProgressIndicator()),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: students.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      title: Text(students[index].name,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepOrange)),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Roll No: ${students[index].rollNumber}',
-                              style: TextStyle(color: Colors.black)),
-                          Text('Mobile No: ${students[index].mobileNumber}',
-                              style: TextStyle(color: Colors.black)),
-                        ],
-                      ),
-                      trailing: ToggleButtons(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.green),
-                          Icon(Icons.cancel, color: Colors.red),
-                        ],
-                        isSelected: [
-                          attendanceStatus[students[index].rollNumber] ==
-                              "Present",
-                          attendanceStatus[students[index].rollNumber] ==
-                              "Absent",
-                        ],
-                        onPressed: (int selectedIndex) {
-                          setState(() {
-                            attendanceStatus[students[index].rollNumber] =
-                                selectedIndex == 0 ? "Present" : "Absent";
-                          });
-                        },
-                        color: Colors.grey,
-                        selectedColor: Colors.white,
-                        fillColor: Colors.deepOrange,
-                        borderColor: Colors.grey,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
                 },
               ),
-            ),
-            SizedBox(height: 20),
-            if (students.isNotEmpty)
-              _buildIndianStyledButton(
-                onPressed: askForSubjectCode,
-                text: 'Submit Attendance',
+              SizedBox(height: 20),
+              _buildModernButton(
+                onPressed: fetchStudents,
+                text: 'Load Students',
               ),
-          ],
+              SizedBox(height: 20),
+              if (isLoading)
+                Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              SizedBox(height: 10),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: students.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      elevation: 4,
+                      color: Colors.white.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          students[index].name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Roll No: ${students[index].rollNumber}',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        trailing: ToggleButtons(
+                          children: [
+                            Text('  P  ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('  A  ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ],
+                          isSelected: [
+                            attendanceStatus[students[index].rollNumber] == "Present",
+                            attendanceStatus[students[index].rollNumber] == "Absent",
+                          ],
+                          onPressed: (int selectedIndex) {
+                            setState(() {
+                              attendanceStatus[students[index].rollNumber] =
+                              selectedIndex == 0 ? "Present" : "Absent";
+                            });
+                          },
+                          color: Colors.white,
+                          selectedColor: Colors.white,
+                          fillColor: attendanceStatus[students[index].rollNumber] == "Present" ? Colors.green : Colors.red,
+                          borderColor: Colors.white70,
+                          selectedBorderColor: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 20),
+              if (students.isNotEmpty)
+                _buildModernButton(
+                  onPressed: askForSubjectCode,
+                  text: 'Submit Attendance',
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildIndianStyledButton(
-      {required VoidCallback onPressed, required String text}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.deepOrange,
-        borderRadius: BorderRadius.circular(10),
-        gradient: LinearGradient(
-          colors: [Colors.orange, Colors.deepOrange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildModernButton({required VoidCallback onPressed, required String text}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
+        backgroundColor: Colors.white,
+        elevation: 8,
       ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: 'Serif',
-          ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.deepPurple,
         ),
       ),
     );
